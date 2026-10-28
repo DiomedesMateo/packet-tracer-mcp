@@ -39,7 +39,7 @@ git clone https://github.com/DiomedesMateo/packet-tracer-mcp.git
 cd packet-tracer-mcp
 
 python -m venv .venv
-.\.​venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 
 # If execution policy blocks Activate:
 # Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -111,17 +111,46 @@ Add a similar MCP entry pointing to the same Python module and absolute interpre
 
 ---
 
-## Packet Tracer bridge (required for live control)
+## Configure Packet Tracer (required for live control)
+
+Without this step the MCP can only **plan** topologies. Live tools (`pt_add_device`, `pt_live_deploy`, `pt_connect`, etc.) need Packet Tracer **polling** the local HTTP bridge.
+
+### Step-by-step (PT 8.x / 9.x)
 
 1. Open **Cisco Packet Tracer**.
-2. **Extensions → Scripting → New PT Script Module** (or edit existing).
-3. In **Script Engine**, paste the contents of `extension/bridge_debug.js` (recommended for PT 8.x — uses `_NetAccess`).
-4. **Export** as `.pts` → **Configure PT Script Modules → Add** → **Start**.
-5. Leave Packet Tracer open while using the MCP.
+2. Menu **Extensions → Scripting → New PT Script Module...**  
+   (or **Configure PT Script Modules...** → select a module → **Edit**).
+3. Open the **Script Engine** tab  
+   (or **Info → 3. Script Engine Files → Go To**).
+4. Create or edit a `.js` file and paste **the entire contents** of one of these files from the repo:
+   - **Recommended for PT 8.x:** [`extension/bridge_debug.js`](extension/bridge_debug.js) (uses `_NetAccess`)
+   - **Alternative:** [`extension/bridge_bootstrap.js`](extension/bridge_bootstrap.js) (XMLHttpRequest / webview)
+5. Save the script inside the module.
+6. Go to **Info → 6. Saving → Export** and save as e.g. `MCP-Bridge.pts`.
+7. Open **Extensions → Scripting → Configure PT Script Modules...**
+   - If the module is not in the list → **Add** → choose the `.pts` file.
+   - Select the module → click **Start**.
+   - The window title should show **(Running)**, not `(Stopped)`.
+8. Optional: click **Debug** to see logs such as `PT-MCP: bridge ACTIVO`.
+9. **Leave Packet Tracer open** while you use OpenCode / Claude / Cursor.
 
-Fallback: `extension/bridge_bootstrap.js` (XMLHttpRequest / webview style).
+> If PT shows *\"New script modules must be exported and added as persistent script modules before starting\"*, you must **Export** + **Add** before **Start**.
 
-The MCP HTTP bridge listens on `http://127.0.0.1:54321`.
+### Verify from the AI client
+
+```
+Usa pt_bridge_status
+```
+
+| Result | Meaning |
+|--------|---------|
+| `connected: true` | PT is polling — live tools work |
+| `connected: false` | Module not Running, wrong JS, or PT closed |
+| `running: true` only | MCP HTTP server is up; PT still not polling |
+
+The MCP bridge listens on `http://127.0.0.1:54321` (`GET /next`, `POST /result`).
+
+Detailed guide: [`docs/PACKET_TRACER_SETUP.md`](docs/PACKET_TRACER_SETUP.md).
 
 ---
 
@@ -140,7 +169,11 @@ pt_add_device R1 router-pt
 pt_get_topology
 ```
 
-More prompts: `examples/sample_prompts.md`.
+```
+Plan a two-site OSPF topology and deploy it live.
+```
+
+More prompts: [`examples/sample_prompts.md`](examples/sample_prompts.md).
 
 ---
 
@@ -168,16 +201,17 @@ More prompts: `examples/sample_prompts.md`.
 packet-tracer-mcp/
 ├── pyproject.toml
 ├── README.md
+├── LICENSE
 ├── extension/
-│   ├── bridge_bootstrap.js
-│   └── bridge_debug.js
+│   ├── bridge_bootstrap.js      # XHR / webview bootstrap
+│   └── bridge_debug.js          # recommended for PT 8.x (_NetAccess)
 ├── src/packet_tracer_mcp/
-│   ├── server.py
-│   ├── bridge.py
-│   ├── api_probe.py
+│   ├── server.py                # MCP tools
+│   ├── bridge.py                # HTTP command queue :54321
+│   ├── api_probe.py             # runtime API discovery + cache
 │   ├── catalog.py
 │   ├── planner.py
-│   └── js_generator.py
+│   └── js_generator.py          # adaptive Script Engine JS
 └── examples/
     ├── opencode.json
     └── sample_prompts.md
@@ -188,8 +222,8 @@ packet-tracer-mcp/
 ## Notes
 
 - Prefer `pip install "mcp<2"` if you hit FastMCP / MCPServer import errors (SDK 2.x rename).
-- Cache file: `~/.packet_tracer_mcp_cache.json`.
-- If `connected: false` in `pt_bridge_status`, the Script Module is not polling — re-Start the module.
+- Cache file: `~/.packet_tracer_mcp_cache.json` (workspace path, device type codes).
+- If `connected: false`, re-**Start** the Script Module and keep Packet Tracer open.
 
 ## License
 
