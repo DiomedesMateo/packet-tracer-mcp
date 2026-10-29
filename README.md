@@ -122,16 +122,17 @@ Without this step the MCP can only **plan** topologies. Live tools (`pt_add_devi
    (or **Configure PT Script Modules...** → select a module → **Edit**).
 3. Open the **Script Engine** tab  
    (or **Info → 3. Script Engine Files → Go To**).
-4. Create or edit a `.js` file and paste **the entire contents** of one of these files from the repo:
-   - **Recommended for PT 8.x:** [`extension/bridge_debug.js`](extension/bridge_debug.js) (uses `_NetAccess`)
-   - **Alternative:** [`extension/bridge_bootstrap.js`](extension/bridge_bootstrap.js) (XMLHttpRequest / webview)
+4. Create or edit a `.js` file and paste **the entire contents** of the file that matches your PT version:
+   - **Packet Tracer 9.0.1+:** [`extension/bridge_pt901.js`](extension/bridge_pt901.js) (multi-signature `_NetAccess` — fixes *Passing incompatible arguments to C++*)
+   - **Packet Tracer 8.x:** [`extension/bridge_debug.js`](extension/bridge_debug.js) (classic `_NetAccess`)
+   - **Alternative / webview:** [`extension/bridge_bootstrap.js`](extension/bridge_bootstrap.js) (XMLHttpRequest)
 5. Save the script inside the module.
 6. Go to **Info → 6. Saving → Export** and save as e.g. `MCP-Bridge.pts`.
 7. Open **Extensions → Scripting → Configure PT Script Modules...**
    - If the module is not in the list → **Add** → choose the `.pts` file.
    - Select the module → click **Start**.
    - The window title should show **(Running)**, not `(Stopped)`.
-8. Optional: click **Debug** to see logs such as `PT-MCP: bridge ACTIVO`.
+8. Optional: click **Debug** to see logs such as `PT-MCP 9.0.1: bridge ACTIVE`.
 9. **Leave Packet Tracer open** while you use OpenCode / Claude / Cursor.
 
 > If PT shows *\"New script modules must be exported and added as persistent script modules before starting\"*, you must **Export** + **Add** before **Start**.
@@ -204,14 +205,15 @@ packet-tracer-mcp/
 ├── LICENSE
 ├── extension/
 │   ├── bridge_bootstrap.js      # XHR / webview bootstrap
-│   └── bridge_debug.js          # recommended for PT 8.x (_NetAccess)
+│   ├── bridge_debug.js          # PT 8.x (_NetAccess)
+│   └── bridge_pt901.js           # PT 9.0.1+ (multi-signature)
 ├── src/packet_tracer_mcp/
-│   ├── server.py                # MCP tools
-│   ├── bridge.py                # HTTP command queue :54321
-│   ├── api_probe.py             # runtime API discovery + cache
+│   ├── server.py
+│   ├── bridge.py
+│   ├── api_probe.py
 │   ├── catalog.py
 │   ├── planner.py
-│   └── js_generator.py          # adaptive Script Engine JS
+│   └── js_generator.py
 └── examples/
     ├── opencode.json
     └── sample_prompts.md
@@ -222,8 +224,9 @@ packet-tracer-mcp/
 ## Notes
 
 - Prefer `pip install "mcp<2"` if you hit FastMCP / MCPServer import errors (SDK 2.x rename).
-- Cache file: `~/.packet_tracer_mcp_cache.json` (workspace path, device type codes).
+- Cache file: `~/.packet_tracer_mcp_cache.json`.
 - If `connected: false`, re-**Start** the Script Module and keep Packet Tracer open.
+- PT 9.0.1 error *Passing incompatible arguments to C++* → use `extension/bridge_pt901.js`.
 
 ## License
 

@@ -24,19 +24,15 @@ Deja un archivo nuevo o existente abierto en la vista **Logical**.
 ### 3. Añadir el código JavaScript
 
 1. Pestaña **Script Engine** (o **Info → 3. Script Engine Files → Go To**).
-2. Crea un archivo (por ejemplo `bridge.js`) y pega **todo** el contenido de:
+2. Crea un archivo (por ejemplo `bridge.js`) y pega **todo** el contenido del archivo que corresponda a tu versión:
 
-**Recomendado (Packet Tracer 8.x):**
+| Versión PT | Archivo |
+|------------|---------|
+| **9.0.1 / 9.x** | [`extension/bridge_pt901.js`](../extension/bridge_pt901.js) |
+| **8.x** | [`extension/bridge_debug.js`](../extension/bridge_debug.js) |
+| Webview / alternativa | [`extension/bridge_bootstrap.js`](../extension/bridge_bootstrap.js) |
 
-[`extension/bridge_debug.js`](../extension/bridge_debug.js)
-
-Usa la API `_NetAccess` de PT 8.x.
-
-**Alternativa:**
-
-[`extension/bridge_bootstrap.js`](../extension/bridge_bootstrap.js)
-
-Usa `XMLHttpRequest` (mejor en contextos webview / Custom Interface).
+**PT 9.0.1:** si ves `TypeError: Passing incompatible arguments to C++ functions from JavaScript is not allowed`, usa **`bridge_pt901.js`** (prueba varias firmas de `httpGet` / `httpPost`).
 
 ### 4. Exportar el módulo
 
@@ -58,7 +54,8 @@ Usa `XMLHttpRequest` (mejor en contextos webview / Custom Interface).
 Con el módulo seleccionado, **Debug** muestra mensajes como:
 
 ```
-PT-MCP: bridge ACTIVO via _NetAccess -> http://127.0.0.1:54321
+PT-MCP 9.0.1: bridge ACTIVE (multi-signature) -> http://127.0.0.1:54321
+PT-MCP 9.0.1: httpGet mode=0
 ```
 
 ### 7. Dejar PT abierto
@@ -79,7 +76,7 @@ Usa pt_bridge_status
 Si `connected` es `false`:
 
 - ¿El módulo está en **Running**?
-- ¿Pegaste `bridge_debug.js` (o el bootstrap) completo?
+- ¿Usaste el bridge correcto para tu versión (9.0.1 → `bridge_pt901.js`)?
 - ¿Packet Tracer sigue abierto?
 - Prueba **Stop** → **Start** de nuevo en el módulo.
 
